@@ -36,10 +36,10 @@ nbdist/
 # 3. Environment & Sensitive Files
 #================================
 # Chứa API keys, passwords, database URLs
-.env
-*.env
-application-local.properties
-application-local.yml
+#.env
+#*.env
+#application-local.properties
+#application-local.yml
 
 # 4. OS & Log Files
 #================================
