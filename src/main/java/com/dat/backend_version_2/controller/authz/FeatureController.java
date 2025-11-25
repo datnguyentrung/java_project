@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class FeatureController {
     private final FeatureRedisImpl featureRedis;
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN') and @userSec.isActive()")
     public ResponseEntity<FeatureRes.BasicInfo> createFeature(
             @RequestBody FeatureReq featureInfo) {
         Feature feature = featureService.createFeature(featureInfo);
@@ -33,8 +35,6 @@ public class FeatureController {
 
     @GetMapping
     public ResponseEntity<List<FeatureRes>> getAllFeatures() throws JsonProcessingException {
-//        return ResponseEntity.status(HttpStatus.OK)
-//                .body(featureService.getAllFeatures());
         List<FeatureRes> features = featureRedis.getAllEnabledFeatures();
         if (features == null) {
             features = featureService.getAllEnabledFeatures();

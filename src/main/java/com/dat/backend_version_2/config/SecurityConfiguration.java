@@ -1,5 +1,6 @@
 package com.dat.backend_version_2.config;
 
+import com.dat.backend_version_2.enums.authentication.UserStatus;
 import com.dat.backend_version_2.util.SecurityUtil;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.util.Base64;
@@ -73,6 +74,20 @@ public class SecurityConfiguration {
         };
     }
 
+    @Bean("userSec") // Đặt tên bean là "userSec" để gọi trong @PreAuthorize
+    public UserSecurity userSecurity() {
+        return new UserSecurity();
+    }
+
+    // Class này chứa logic kiểm tra, sẽ được gọi mỗi khi request chạy vào hàm Controller
+    public static class UserSecurity {
+        public boolean isActive() {
+            return SecurityUtil.getCurrentUserStatus()
+                    .map("ACTIVE"::equals)
+                    .orElse(false);
+        }
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http, CustomAuthenticationEntryPoint customAuthenticationEntryPoint
@@ -83,13 +98,14 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                         authz -> authz
 //                                .requestMatchers(
-//                                        "/api/v1/students/**", "/api/v1/auth/login", "/api/v1/auth/refresh",
-//                                        "/api/v1/auth/logout", "/api/v1/user", "/api/v1/survey-basic"
+//                                        "/api/v1/auth/login",
+//                                        "/api/v1/auth/logout",
+//                                        "/api/v1/user"
 //                                ).permitAll()
 //                                // 👇 Chỉ GET là public
 //                                .requestMatchers(HttpMethod.GET,
-//                                        "/api/v1/class-unit/**", "/api/v1/coach/**",
-//                                        "/api/v1/tournament/**", "/api/v1/achievement/**"
+//                                        "/api/v1/tournament/**", "/api/v1/achievement/**",
+//                                        "/api/v1/branches"
 //                                ).permitAll()
 //                                .anyRequest().authenticated()
                                 .anyRequest().permitAll()

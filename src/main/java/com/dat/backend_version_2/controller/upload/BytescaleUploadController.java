@@ -6,6 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.SecretKey;
@@ -29,6 +30,7 @@ public class BytescaleUploadController {
      * @return ResponseEntity chứa chuỗi JWT (token)
      */
     @PostMapping("/auth-token")
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<String> createUploadAuthToken(
             @RequestBody BytescaleUploadRequest bytescaleUploadRequest) {
 

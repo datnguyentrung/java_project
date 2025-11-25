@@ -4,6 +4,7 @@ import com.dat.backend_version_2.domain.authz.Roles;
 import com.dat.backend_version_2.service.authz.RolesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,7 @@ public class RolesController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN') and @userSec.isActive()")
     public ResponseEntity<Roles> createRole(@RequestBody Roles role) {
         Roles roles = rolesService.createRole(role);
         return ResponseEntity

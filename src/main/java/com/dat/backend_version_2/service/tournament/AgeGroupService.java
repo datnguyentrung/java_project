@@ -45,7 +45,8 @@ public class AgeGroupService {
         // 1️⃣ Tạo mới AgeGroup
         AgeGroup ageGroup = new AgeGroup();
         ageGroup.setAgeGroupName(ageGroupDTO.getAgeGroupName());
-        ageGroup.setAgeDivisions(ageGroupDTO.getAgeDivisions());
+        ageGroup.setStartAge(ageGroupDTO.getStartAge());
+        ageGroup.setEndAge(ageGroupDTO.getEndAge());
         ageGroup.setIsActive(true);
         ageGroupRepository.save(ageGroup);
 

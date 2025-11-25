@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -31,6 +32,7 @@ public class StudentController {
      * Tạo mới student
      */
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN') and @userSec.isActive()")
     public ResponseEntity<StudentRes.PersonalInfo> createStudent(
             @Valid @RequestBody StudentReq.StudentInfo studentInfo) throws IdInvalidException, JsonProcessingException {
         Student student = studentService.createStudent(studentInfo);
@@ -47,6 +49,7 @@ public class StudentController {
      * Lấy tất cả students với caching
      */
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<List<StudentRes.PersonalAcademicInfo>> getAllStudents()
             throws JsonProcessingException {
         List<StudentRes.PersonalAcademicInfo> students = studentRedis.getAllStudents();

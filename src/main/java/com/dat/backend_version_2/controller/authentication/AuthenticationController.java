@@ -84,7 +84,7 @@ public class AuthenticationController {
         loginRes.setRefreshToken(refreshToken);
 
         // update user
-        userTokensService.updateUserTokens(refreshToken, loginReq.getIdAccount(), loginReq.getIdDevice());
+        userTokensService.updateUserTokens(refreshToken, currentUserDB.getIdUser().toString(), loginReq.getIdDevice());
 
         ResponseCookie responseCookie = ResponseCookie
                 .from("refresh_token", refreshToken)
@@ -115,29 +115,37 @@ public class AuthenticationController {
         return ResponseEntity.ok().body(userGetAccount);
     }
 
-    @GetMapping("/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<LoginRes> getRefreshToken(
-            @CookieValue(name = "refresh_token", defaultValue = "") String refreshToken
+//            @CookieValue(name = "refresh_token", defaultValue = "") String refreshToken
+        @RequestBody LoginReq.RefreshRequest request
     ) throws AuthenticationException, IdInvalidException {
-        if (refreshToken == null) {
-            throw new IdInvalidException("Bạn không có refresh token ở cookies");
+        String refreshToken = request.getRefreshToken();
+        if (refreshToken == null || refreshToken.isEmpty()) {
+//            throw new IdInvalidException("Bạn không có refresh token ở cookies");
+            throw new IdInvalidException("Bạn không có refresh token");
         }
 
         Jwt decodedToken = securityUtil.checkValidRefreshToken(refreshToken);
-        String idAccount = decodedToken.getSubject();
+        String idUser = decodedToken.getSubject();
         String idDevice = decodedToken.getClaim("id_device");
 
         // check user by token + idAccount + idDevice
         UserTokens currentUserDB = userTokensService
-                .getUserTokensByRefreshTokenAndIdAccountAndIdDevice(refreshToken, idAccount, idDevice);
+                .getUserTokensByRefreshTokenAndIdAccountAndIdDevice(refreshToken, idUser, idDevice);
         if (currentUserDB == null) {
             throw new AuthenticationException("Token không hợp lệ hoặc thiết bị không khớp");
         }
 
         // issue new token/set refresh token as cookies
         LoginRes loginRes = new LoginRes();
-        Users userDB = userService.getUserByIdAccount(idAccount);
+        Users userDB = userService.getUserById(idUser);
+        System.out.println("UserDB: " + userDB);
         if (userDB != null) {
+            System.out.println("IdAccount: " + userDB.getIdAccount());
+            System.out.println("Status: " + userDB.getStatus());
+            System.out.println("Role ID: " + (userDB.getRole() != null ? userDB.getRole().getIdRole() : "NULL ROLE OBJECT")); // Kiểm tra kỹ Role
+            System.out.println("CreatedAt: " + userDB.getCreatedAt());
             LoginRes.UserLogin userLogin = new LoginRes.UserLogin(
                     userDB.getIdAccount(),
                     userDB.getStatus(),
@@ -146,6 +154,7 @@ public class AuthenticationController {
             );
             loginRes.setUser(userLogin);
         }
+        loginRes.setIdDevice(idDevice);
 
         // Create access token
         assert userDB != null;
@@ -155,46 +164,51 @@ public class AuthenticationController {
         // Create refresh token
         String new_refreshToken = securityUtil.createRefreshToken(userDB.getIdUser(), loginRes);
 
+        loginRes.setRefreshToken(new_refreshToken);
+
         // update user
-        userTokensService.updateUserTokens(new_refreshToken, idAccount, idDevice);
+        userTokensService.updateUserTokens(new_refreshToken, idUser, idDevice);
 
         // set cookies
-        ResponseCookie responseCookie = ResponseCookie
-                .from("refresh_token", refreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(refreshTokenExpiration)
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
-                .body(loginRes);
+//        ResponseCookie responseCookie = ResponseCookie
+//                .from("refresh_token", refreshToken)
+//                .httpOnly(true)
+//                .secure(true)
+//                .path("/")
+//                .maxAge(refreshTokenExpiration)
+//                .build();
+//
+//        return ResponseEntity.ok()
+//                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+//                .body(loginRes);
+        return ResponseEntity.ok(loginRes);
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
-            @CookieValue(name = "refresh_token", defaultValue = "") String refreshToken
+//            @CookieValue(name = "refresh_token", defaultValue = "") String refreshToken
+            @RequestBody LoginReq.RefreshRequest request
     ) throws IdInvalidException, AuthenticationException {
+        String refreshToken = request.getRefreshToken();
         if (refreshToken == null || refreshToken.isEmpty()) {
-            throw new IdInvalidException("Không tìm thấy refresh token trong cookie");
+//            throw new IdInvalidException("Không tìm thấy refresh token trong cookie");
+            throw new IdInvalidException("Không tìm thấy refresh token");
         }
 
         Jwt decodedToken = securityUtil.checkValidRefreshToken(refreshToken);
 
+        String idUser = decodedToken.getSubject();
         // Lấy claim "user" và convert về UserLogin
         Object userObj = decodedToken.getClaim("user");
         LoginRes.UserLogin userLogin = new ObjectMapper()
                 .convertValue(userObj, LoginRes.UserLogin.class);
-
-        String idAccount = userLogin.getIdAccount();
 
         // Lấy claim "id_device" an toàn
         String idDevice = decodedToken.getClaim("id_device");
         System.out.println("idDevice: " + idDevice);
 
         // update refresh token = null
-        userTokensService.updateUserTokens(null, idAccount, idDevice);
+        userTokensService.updateUserTokens(null, idUser, idDevice);
 
         // Xóa cookie refresh token trên client
         ResponseCookie deleteSpringCookie = ResponseCookie

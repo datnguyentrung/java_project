@@ -8,6 +8,7 @@ import com.dat.backend_version_2.service.training.CoachService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,7 @@ public class CoachController {
     private final CoachService coachService;
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN') and @userSec.isActive()")
     public ResponseEntity<CoachRes.PersonalInfo> createCoach(
             @Valid @RequestBody CoachReq.CoachInfo coachInfo) {
         Coach coach = coachService.createCoach(coachInfo);

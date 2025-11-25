@@ -21,7 +21,13 @@ public class UserTokensService {
     @Value("${jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenExpiration;
 
-    public UserTokens getUserTokensByIdAccountAndDevice(String idAccount, String idDevice) {
+    public UserTokens getUserTokensByIdUserAndDevice(String idUser, String idDevice) {
+        Users user = usersService.getUserById(idUser);
+        return userTokensRepository.findByUserAndIdDevice(user, idDevice)
+                .orElseGet(() -> createUserTokens(user, idDevice));
+    }
+
+    public UserTokens getUserTokensByidAccountAndDevice(String idAccount, String idDevice) {
         Users user = usersService.getUserByIdAccount(idAccount);
         return userTokensRepository.findByUserAndIdDevice(user, idDevice)
                 .orElseGet(() -> createUserTokens(user, idDevice));
@@ -35,8 +41,8 @@ public class UserTokensService {
         return userTokensRepository.save(userTokens);
     }
 
-    public void updateUserTokens(String token, String idAccount, String idDevice) {
-        UserTokens currentUser = getUserTokensByIdAccountAndDevice(idAccount, idDevice);
+    public void updateUserTokens(String token, String idUser, String idDevice) {
+        UserTokens currentUser = getUserTokensByIdUserAndDevice(idUser, idDevice);
         if (currentUser != null) {
             currentUser.setRefreshToken(token);
             userTokensRepository.save(currentUser);
@@ -44,8 +50,8 @@ public class UserTokensService {
     }
 
     public UserTokens getUserTokensByRefreshTokenAndIdAccountAndIdDevice(
-            String refreshToken, String idAccount, String idDevice) {
-        UserTokens currentUser = getUserTokensByIdAccountAndDevice(idAccount, idDevice);
+            String refreshToken, String idUser, String idDevice) {
+        UserTokens currentUser = getUserTokensByIdUserAndDevice(idUser, idDevice);
         if (currentUser != null) {
             currentUser.setRefreshToken(refreshToken);
             userTokensRepository.save(currentUser);

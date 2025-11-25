@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -44,6 +45,7 @@ public class CoachAttendanceController {
      * @return Thông báo kết quả điểm danh
      */
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN') and @userSec.isActive()")
     public ResponseEntity<String> createCoachAttendance(
             @RequestBody CoachAttendanceDTO.CreateRequest createRequest,
             @AuthenticationPrincipal Jwt jwt,
@@ -98,6 +100,7 @@ public class CoachAttendanceController {
      * @return Danh sách điểm danh của huấn luyện viên
      */
     @GetMapping("/{idCoach}/year-month")
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<List<CoachAttendanceRes>> getCoachAttendanceByYearAndMonth(
             @PathVariable String idCoach,
             @RequestParam Integer year,

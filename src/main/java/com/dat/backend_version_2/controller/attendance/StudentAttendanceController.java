@@ -27,6 +27,7 @@ public class StudentAttendanceController {
     private final MessageProducer messageProducer;
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN') and @userSec.isActive()")
     public ResponseEntity<String> createAttendance(
             @RequestBody AttendanceDTO.AttendanceInfo attendanceDTO,
             Authentication authentication) throws IdInvalidException, JsonProcessingException {
@@ -39,6 +40,7 @@ public class StudentAttendanceController {
     }
 
     @PatchMapping("/attendance")
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<String> markAttendance(
             @RequestBody StudentAttendanceDTO.StudentMarkAttendance markAttendance,
             Authentication authentication) throws ResponseStatusException {
@@ -52,12 +54,13 @@ public class StudentAttendanceController {
 
     // Sửa đánh giá
     @PatchMapping("/evaluation")
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<String> markEvaluation(
             @RequestBody StudentAttendanceDTO.StudentMarkEvaluation markEvaluation,
-            Authentication authentication) throws IdInvalidException, ResponseStatusException {
+            Authentication authentication) throws ResponseStatusException {
         String idUser = authentication.getName();
 
-        studentAttendanceService.markEvaluation(markEvaluation, idUser);
+        messageProducer.sendEvaluationRequest(markEvaluation, idUser);
         return ResponseEntity.ok(
                 "Evaluation updated successfully for key: " + markEvaluation.getAttendanceAccountKey()
         );
@@ -65,7 +68,7 @@ public class StudentAttendanceController {
 
     // Điểm danh theo mã buổi học và ngày điểm danh
     @PostMapping("/class-session")
-    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<Map<String, Object>> attendanceByClassSession(
             @RequestParam String idClassSession,
             @RequestParam LocalDate attendanceDate
@@ -108,6 +111,7 @@ public class StudentAttendanceController {
 
     // Lấy danh sách điểm danh ở 1 lớp học trong ngày
     @GetMapping("/class-session")
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<List<StudentAttendanceDTO.StudentAttendanceDetail>> getAttendanceByClassSession(
             @RequestParam String idClassSession,
             @RequestParam LocalDate attendanceDate) throws IdInvalidException {
@@ -117,7 +121,8 @@ public class StudentAttendanceController {
     }
 
     @GetMapping("/quarter")
-    public ResponseEntity<List<AttendanceDTO.AttendanceInfo>> getAttendancesByIdAccountAndQuarter(
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'COACH', 'ADMIN') and @userSec.isActive()")
+    public ResponseEntity<List<StudentAttendanceDTO.StudentAttendanceDetail>> getAttendancesByIdAccountAndQuarter(
             @RequestParam String idAccount,
             @RequestParam int year,
             @RequestParam int quarter) throws IllegalArgumentException, UserNotFoundException {

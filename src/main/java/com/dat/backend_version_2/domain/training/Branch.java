@@ -22,6 +22,7 @@ public class Branch {
     private Integer idBranch; // className in ClassSession
     private String title;
     private String address;
+    private boolean isActive = true;
 
     @ElementCollection(targetClass = Weekday.class)
     @CollectionTable(

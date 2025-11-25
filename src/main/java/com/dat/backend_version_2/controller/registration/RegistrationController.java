@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class RegistrationController {
     private final RegistrationService registrationService;
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<String> createRegistration(
             @RequestBody @Valid RegistrationDTO.PersonalInfo personalInfo) {
 
@@ -29,11 +31,13 @@ public class RegistrationController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<List<RegistrationDTO>> getAllRegistrations() {
         return ResponseEntity.ok(registrationService.getAllRegistrations());
     }
 
     @PostMapping("/update")
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<String> updateRegistration(
             @RequestBody @Valid RegistrationDTO registrationDTO) throws IdInvalidException, JsonProcessingException {
         registrationService.updateRegistration(

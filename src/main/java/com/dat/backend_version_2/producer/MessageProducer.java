@@ -5,7 +5,6 @@ import com.dat.backend_version_2.dto.attendance.StudentAttendanceDTO;
 import com.dat.backend_version_2.service.messaging.RabbitMQService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

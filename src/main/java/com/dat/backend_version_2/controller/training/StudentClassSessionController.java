@@ -7,6 +7,7 @@ import com.dat.backend_version_2.service.training.StudentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +24,7 @@ public class StudentClassSessionController {
     private final StudentService studentService;
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN') and @userSec.isActive()")
     public ResponseEntity<Map<String, Object>> createStudentClassSession(@RequestBody StudentClassSessionReq request) {
         Map<String, Object> response = new HashMap<>();
         Student student = studentService.getStudentById(request.getIdUser());

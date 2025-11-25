@@ -24,14 +24,6 @@ public class AgeGroup {
     private String ageGroupName;
     private Boolean isActive = true;
 
-    @ElementCollection(targetClass = AgeDivision.class, fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "age_group_age_divisions",
-            joinColumns = @JoinColumn(name = "id_age_group"),
-            schema = "association"
-    )
-    @Enumerated(EnumType.STRING)
-    @Column(name = "age_divisions")
-    @BatchSize(size = 25) // Batch fetch để giảm N+1 query
-    private List<AgeDivision> ageDivisions;   // Danh sách các node liên kết trong bracket
+    private Integer startAge;
+    private Integer endAge;
 }

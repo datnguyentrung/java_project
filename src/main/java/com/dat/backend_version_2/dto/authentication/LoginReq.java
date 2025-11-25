@@ -20,4 +20,10 @@ public class LoginReq {
         @NotBlank(message = "IdDevice must not be blank")
         private String idDevice;
     }
+
+    @Data
+    public static class RefreshRequest{
+        @NotBlank(message = "RefreshToken must not be blank")
+        private String refreshToken;
+    }
 }

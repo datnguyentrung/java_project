@@ -17,8 +17,8 @@ public class StudentAttendanceConsumer {
     private final StudentAttendanceService studentAttendanceService;
 
     @RabbitListener(
-        queues = RabbitMQConfig.ATTENDANCE_QUEUE,
-        errorHandler = "rabbitMQErrorHandler"
+            queues = RabbitMQConfig.ATTENDANCE_QUEUE,
+            errorHandler = "rabbitMQErrorHandler"
     )
     public void handleAttendanceMessage(
             StudentAttendanceDTO.StudentMarkAttendance attendance,
@@ -51,7 +51,7 @@ public class StudentAttendanceConsumer {
      * Validates attendance data to ensure all required fields are present and valid
      *
      * @param attendance the attendance data to validate
-     * @param idUser    the user ID from header
+     * @param idUser     the user ID from header
      * @throws IllegalArgumentException if any validation fails
      */
     private void validateAttendanceData(StudentAttendanceDTO.StudentMarkAttendance attendance, String idUser) {
@@ -82,6 +82,73 @@ public class StudentAttendanceConsumer {
 
         if (attendance.getAttendanceStatus() == null) {
             throw new IllegalArgumentException("Attendance status cannot be null");
+        }
+    }
+
+    @RabbitListener(
+            queues = RabbitMQConfig.EVALUATION_QUEUE,
+            errorHandler = "rabbitMQErrorHandler"
+    )
+    public void handleEvaluationMessage(
+            StudentAttendanceDTO.StudentMarkEvaluation evaluation,
+            @Header("idUser") String idUser) {
+        try {
+            log.info("Received evaluation message from RabbitMQ: {} for User: {}", evaluation, idUser);
+
+            // Validate input data first
+            validateEvaluationData(evaluation, idUser);
+
+            // Process the evaluation
+            studentAttendanceService.markEvaluation(evaluation, idUser);
+
+            log.info("Successfully processed evaluation for student: {}", idUser);
+
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid data in evaluation message: {}", e.getMessage());
+            // Reject message and don't requeue for validation errors
+            throw new AmqpRejectAndDontRequeueException("Invalid evaluation data: " + e.getMessage(), e);
+
+        } catch (Exception e) {
+            log.error("Critical error processing evaluation message for user {}: {}", idUser, e.getMessage(), e);
+            // Reject message and don't requeue for processing errors
+            throw new AmqpRejectAndDontRequeueException("Failed to process evaluation: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Validates evaluation data to ensure all required fields are present and valid
+     *
+     * @param evaluation the evaluation data to validate
+     * @param idUser     the user ID from header
+     * @throws IllegalArgumentException if any validation fails
+     */
+    private void validateEvaluationData(StudentAttendanceDTO.StudentMarkEvaluation evaluation, String idUser) {
+        if (evaluation == null) {
+            throw new IllegalArgumentException("Evaluation data cannot be null");
+        }
+
+        if (idUser == null || idUser.trim().isEmpty()) {
+            throw new IllegalArgumentException("User ID cannot be null or empty");
+        }
+        if (evaluation.getAttendanceAccountKey() == null) {
+            throw new IllegalArgumentException("Evaluation key cannot be null");
+        }
+
+        if (evaluation.getAttendanceAccountKey().getIdAccount() == null) {
+            throw new IllegalArgumentException("Student ID in evaluation key cannot be null or empty");
+        }
+
+        if (evaluation.getAttendanceAccountKey().getIdClassSession() == null ||
+                evaluation.getAttendanceAccountKey().getIdClassSession().trim().isEmpty()) {
+            throw new IllegalArgumentException("Class session ID cannot be null or empty");
+        }
+
+        if (evaluation.getAttendanceAccountKey().getAttendanceDate() == null) {
+            throw new IllegalArgumentException("Evaluation date cannot be null");
+        }
+
+        if (evaluation.getEvaluationStatus() == null) {
+            throw new IllegalArgumentException("Evaluation score cannot be null");
         }
     }
 }

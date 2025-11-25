@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,7 +22,14 @@ import java.util.List;
 public class TrialAttendanceController {
     private final TrialAttendanceService trialAttendanceService;
 
+    @GetMapping
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
+    public ResponseEntity<List<TrialAttendanceDTO.TrialAttendanceDetail>> getAllTrialAttendance(){
+        return ResponseEntity.ok(trialAttendanceService.getAllTrialAttendance());
+    }
+
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<String> createTrialAttendance(
             @RequestBody @Valid AttendanceDTO.AttendanceInfo attendanceDTO,
             Authentication authentication) {
@@ -43,11 +51,13 @@ public class TrialAttendanceController {
     }
 
     @GetMapping("/today")
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<List<TrialAttendanceDTO.TrialAttendanceDetail>> getCurrentTrialAttendance(){
         return ResponseEntity.ok(trialAttendanceService.getCurrentTrialAttendance());
     }
 
     @PatchMapping("/evaluation")
+    @PreAuthorize("hasAnyAuthority('COACH', 'ADMIN') and @userSec.isActive()")
     public ResponseEntity<String> markEvaluation(
             @RequestBody TrialAttendanceDTO.TrialMarkEvaluation markEvaluation,
             Authentication authentication) throws IdInvalidException, ResponseStatusException {

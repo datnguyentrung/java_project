@@ -1,12 +1,10 @@
 package com.dat.backend_version_2.service;
 
-import com.dat.backend_version_2.domain.attendance.StudentAttendance;
 import com.dat.backend_version_2.dto.ScoreDTO;
 import com.dat.backend_version_2.dto.attendance.AttendanceDTO;
 import com.dat.backend_version_2.dto.attendance.StudentAttendanceDTO;
 import com.dat.backend_version_2.enums.attendance.AttendanceStatus;
 import com.dat.backend_version_2.enums.attendance.EvaluationStatus;
-import com.dat.backend_version_2.mapper.attendance.StudentAttendanceMapper;
 import com.dat.backend_version_2.service.attendance.StudentAttendanceService;
 import com.dat.backend_version_2.util.ScoreCalculator;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +20,16 @@ public class ScoreService {
     private final StudentAttendanceService studentAttendanceService;
 
     public ScoreDTO.SummaryScore getSummaryByQuarter(int year, int quarter, String idAccount) {
-        List<AttendanceDTO.AttendanceInfo> attendanceInfos = studentAttendanceService
+        // 1. Gọi phương thức để lấy List<StudentAttendanceDTO.StudentAttendanceDetail>
+        List<StudentAttendanceDTO.StudentAttendanceDetail> detailList = studentAttendanceService
                 .getAttendancesByQuarter(idAccount, year, quarter);
+
+        // 2. Sử dụng stream để ánh xạ (map) từng StudentAttendanceDetail
+        //    sang kiểu cha là AttendanceDTO.AttendanceInfo
+        List<AttendanceDTO.AttendanceInfo> attendanceInfos = detailList.stream()
+                // Ép kiểu (cast) từng phần tử sang kiểu cha
+                .map(detail -> (AttendanceDTO.AttendanceInfo) detail)
+                .toList();
 
         ScoreDTO.AchievementScore achievementScore = new ScoreDTO.AchievementScore();
         ScoreDTO.ContributionScore contributionScore = new ScoreDTO.ContributionScore();

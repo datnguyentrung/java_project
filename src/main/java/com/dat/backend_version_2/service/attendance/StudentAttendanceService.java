@@ -211,14 +211,16 @@ public class StudentAttendanceService {
         studentAttendanceRepository.save(studentAttendance);
     }
 
-    public List<AttendanceDTO.AttendanceInfo> getAttendancesByQuarter(
+    public List<StudentAttendanceDTO.StudentAttendanceDetail> getAttendancesByQuarter(
             String idAccount, int year, int quarter) throws IllegalArgumentException, UserNotFoundException {
         List<Integer> months = ConverterUtils.getMonthsByQuarter(quarter);
         Student student = studentService.getActiveStudentByIdAccount(idAccount);
         List<StudentAttendance> attendanceList = studentAttendanceRepository
                 .findByStudentAndYearAndQuarter(student, year, months);
         return attendanceList.stream()
-                .map(StudentAttendanceMapper::studentAttendanceToAttendanceInfo)
+                .map(StudentAttendanceMapper::studentAttendanceToStudentAttendanceDetail)
                 .toList();
     }
+
+
 }

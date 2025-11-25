@@ -32,6 +32,13 @@ public class TrialAttendanceService {
     private final RegistrationService registrationService;
     private final CoachService coachService;
 
+    public List<TrialAttendanceDTO.TrialAttendanceDetail> getAllTrialAttendance() {
+        return trialAttendanceRepository.findAll()
+                .stream()
+                .map(TrialAttendanceMapper::trialAttendanceToTrialAttendanceDetail)
+                .toList();
+    }
+
     @Transactional
     public void markAttendance(AttendanceDTO.AttendanceInfo request, String idUser
     ) throws IdInvalidException, JsonProcessingException {
