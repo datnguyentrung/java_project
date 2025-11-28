@@ -97,18 +97,18 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         authz -> authz
-//                                .requestMatchers(
-//                                        "/api/v1/auth/login",
-//                                        "/api/v1/auth/logout",
-//                                        "/api/v1/user"
-//                                ).permitAll()
-//                                // 👇 Chỉ GET là public
-//                                .requestMatchers(HttpMethod.GET,
-//                                        "/api/v1/tournament/**", "/api/v1/achievement/**",
-//                                        "/api/v1/branches"
-//                                ).permitAll()
-//                                .anyRequest().authenticated()
-                                .anyRequest().permitAll()
+                                .requestMatchers(
+                                        "/api/v1/auth/login",
+                                        "/api/v1/auth/logout",
+                                        "/api/v1/user"
+                                ).permitAll()
+                                // 👇 Chỉ GET là public
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/tournament/**", "/api/v1/achievement/**",
+                                        "/api/v1/branches"
+                                ).permitAll()
+                                .anyRequest().authenticated()
+//                                .anyRequest().permitAll()
                 )
                 .oauth2ResourceServer((oauth2) -> oauth2
                         .jwt(jwt -> jwt
